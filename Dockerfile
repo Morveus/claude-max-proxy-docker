@@ -28,15 +28,21 @@ ENV PATH=$PATH:/usr/local/share/npm-global/bin
 RUN npm install -g @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION} && \
   npm install -g claude-max-api-proxy
 
+# Patch upstream npm package bugs:
+#   1. standalone.js: accept host as second CLI arg, default to 0.0.0.0
+#   2. cli-to-openai.js: guard normalizeModelName against undefined input
+RUN PROXY_DIR=/usr/local/share/npm-global/lib/node_modules/claude-max-api-proxy/dist && \
+  sed -i \
+    's/await startServer({ port });/const host = process.argv[3] || process.env.HOST || "0.0.0.0"; await startServer({ port, host });/' \
+    "$PROXY_DIR/server/standalone.js" && \
+  sed -i \
+    's/function normalizeModelName(model) {/function normalizeModelName(model) { if (!model) return "claude-sonnet-4";/' \
+    "$PROXY_DIR/adapter/cli-to-openai.js"
+
 WORKDIR /workspace
 
-# Proxy listens on 3456 by default
 EXPOSE 3456
 
-# Volumes for persistent data:
-#   /home/node/.claude   - Claude Code config, auth tokens, session data
-#   /home/node/.config   - General config (npm, etc.)
-#   /workspace           - Project files / repos to work on
 VOLUME ["/home/node/.claude", "/home/node/.config", "/workspace"]
 
 COPY --chown=node:node entrypoint.sh /usr/local/bin/entrypoint.sh
