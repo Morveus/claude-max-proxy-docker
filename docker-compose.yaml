@@ -1,0 +1,18 @@
+services:
+  claude-proxy:
+    build: .
+    ports:
+      - "3456:3456"
+    environment:
+      - PORT=3456
+      - CLAUDE_MODEL=sonnet
+      - PROXY_API_KEY=${PROXY_API_KEY:-change-me}
+    volumes:
+      - claude-config:/home/node/.claude
+      - claude-dotconfig:/home/node/.config
+      - ./workspace:/workspace
+    restart: unless-stopped
+
+volumes:
+  claude-config:
+  claude-dotconfig:

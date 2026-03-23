@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: claude-proxy
+  namespace: claude-proxy
+  labels:
+    app: claude-proxy
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate  # Single replica with PVC — no rolling update
+  selector:
+    matchLabels:
+      app: claude-proxy
+  template:
+    metadata:
+      labels:
+        app: claude-proxy
+    spec:
+      securityContext:
+        runAsUser: 1000   # node user
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: claude-proxy
+          image: claude-max-proxy:latest  # Replace with your registry image
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3456
+              name: http
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: claude-proxy-config
+            - secretRef:
+                name: claude-proxy-secrets
+          volumeMounts:
+            - name: claude-config
+              mountPath: /home/node/.claude
+            - name: claude-dotconfig
+              mountPath: /home/node/.config
+            - name: workspace
+              mountPath: /workspace
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          readinessProbe:
+            httpGet:
+              path: /v1/models
+              port: 3456
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /v1/models
+              port: 3456
+            initialDelaySeconds: 15
+            periodSeconds: 30
+      volumes:
+        - name: claude-config
+          persistentVolumeClaim:
+            claimName: claude-config-pvc
+        - name: claude-dotconfig
+          emptyDir: {}
+        - name: workspace
+          persistentVolumeClaim:
+            claimName: claude-workspace-pvc
