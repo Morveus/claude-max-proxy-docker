@@ -31,13 +31,26 @@ RUN npm install -g @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION} && \
 # Patch upstream npm package bugs:
 #   1. standalone.js: accept host as second CLI arg, default to 0.0.0.0
 #   2. cli-to-openai.js: guard normalizeModelName against undefined input
+#   3. openai-to-cli.js: handle content as array (OpenAI multimodal format)
 RUN PROXY_DIR=/usr/local/share/npm-global/lib/node_modules/claude-max-api-proxy/dist && \
   sed -i \
     's/await startServer({ port });/const host = process.argv[3] || process.env.HOST || "0.0.0.0"; await startServer({ port, host });/' \
     "$PROXY_DIR/server/standalone.js" && \
   sed -i \
     's/function normalizeModelName(model) {/function normalizeModelName(model) { if (!model) return "claude-sonnet-4";/' \
-    "$PROXY_DIR/adapter/cli-to-openai.js"
+    "$PROXY_DIR/adapter/cli-to-openai.js" && \
+  sed -i \
+    's/export function messagesToPrompt(messages) {/function normalizeContent(c) { if (typeof c === "string") return c; if (Array.isArray(c)) return c.map(p => p.text || "").join(""); return String(c); }\nexport function messagesToPrompt(messages) {/' \
+    "$PROXY_DIR/adapter/openai-to-cli.js" && \
+  sed -i \
+    's/parts\.push(`<system>\\n${msg\.content}/parts.push(`<system>\\n${normalizeContent(msg.content)}/' \
+    "$PROXY_DIR/adapter/openai-to-cli.js" && \
+  sed -i \
+    's/parts\.push(msg\.content);/parts.push(normalizeContent(msg.content));/' \
+    "$PROXY_DIR/adapter/openai-to-cli.js" && \
+  sed -i \
+    's/parts\.push(`<previous_response>\\n${msg\.content}/parts.push(`<previous_response>\\n${normalizeContent(msg.content)}/' \
+    "$PROXY_DIR/adapter/openai-to-cli.js"
 
 WORKDIR /workspace
 
