@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(/home/node/.claude/**)",
+      "Read(/home/node/.config/**)",
+      "Bash",
+      "Edit",
+      "Write",
+      "NotebookEdit",
+      "WebFetch",
+      "WebSearch",
+      "Task"
+    ]
+  }
+}

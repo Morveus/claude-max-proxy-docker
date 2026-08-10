@@ -45,6 +45,11 @@ RUN PROXY_DIR=/usr/local/share/npm-global/lib/node_modules/claude-max-api-proxy/
 COPY --chown=node:node patches/openai-to-cli.js \
   /usr/local/share/npm-global/lib/node_modules/claude-max-api-proxy/dist/adapter/openai-to-cli.js
 
+# Garde-fous : une requête (ex. texte caché dans une image) ne doit pas pouvoir
+# faire lire les credentials du pod ni exécuter/exfiltrer quoi que ce soit.
+# Managed settings = non contournables par la conversation, hors des volumes montés.
+COPY managed-settings.json /etc/claude-code/managed-settings.json
+
 WORKDIR /workspace
 
 EXPOSE 3456
