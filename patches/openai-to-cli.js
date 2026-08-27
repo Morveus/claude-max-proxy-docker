@@ -16,14 +16,17 @@ const MODEL_MAP = {
     "claude-opus-4": "opus",
     "claude-sonnet-4": "sonnet",
     "claude-haiku-4": "haiku",
+    "claude-fable-5": "fable",
     // With provider prefix
     "claude-code-cli/claude-opus-4": "opus",
     "claude-code-cli/claude-sonnet-4": "sonnet",
     "claude-code-cli/claude-haiku-4": "haiku",
+    "claude-code-cli/claude-fable-5": "fable",
     // Aliases
     "opus": "opus",
     "sonnet": "sonnet",
     "haiku": "haiku",
+    "fable": "fable",
 };
 
 /**
