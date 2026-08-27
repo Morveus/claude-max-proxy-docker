@@ -17,6 +17,11 @@ const MODEL_MAP = {
     "claude-sonnet-4": "sonnet",
     "claude-haiku-4": "haiku",
     "claude-fable-5": "fable",
+    // Noms génération 5 (le CLI résout opus/sonnet/haiku vers la génération courante)
+    "claude-opus-5": "opus",
+    "claude-sonnet-5": "sonnet",
+    "claude-haiku-4-5": "haiku",
+    "claude-haiku-4-5-20251001": "haiku",
     // With provider prefix
     "claude-code-cli/claude-opus-4": "opus",
     "claude-code-cli/claude-sonnet-4": "sonnet",
