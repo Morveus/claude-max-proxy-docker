@@ -45,6 +45,15 @@ RUN PROXY_DIR=/usr/local/share/npm-global/lib/node_modules/claude-max-api-proxy/
 COPY --chown=node:node patches/openai-to-cli.js \
   /usr/local/share/npm-global/lib/node_modules/claude-max-api-proxy/dist/adapter/openai-to-cli.js
 
+# Remplacement complet des routes :
+#   - retry des echecs transitoires de la CLI (« OAuth session expired and
+#     could not be refreshed »), qui se resorbent seuls en quelques secondes,
+#   - echec franc renvoye en 502 au lieu d'un HTTP 200 dont le contenu est en
+#     fait un message d'erreur, indistinguable d'une reponse du modele.
+# Delais configurables via PROXY_RETRY_DELAYS_MS (defaut « 1000,3000,7000 »).
+COPY --chown=node:node patches/routes.js \
+  /usr/local/share/npm-global/lib/node_modules/claude-max-api-proxy/dist/server/routes.js
+
 # Garde-fous : une requête (ex. texte caché dans une image) ne doit pas pouvoir
 # faire lire les credentials du pod ni exécuter/exfiltrer quoi que ce soit.
 # Managed settings = non contournables par la conversation, hors des volumes montés.
